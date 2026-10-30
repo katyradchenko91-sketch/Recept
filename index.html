@@ -10,6 +10,7 @@
             --surface: #1e1e1e;
             --surface-card: #252525;
             --primary: #ff5722;
+            --accent: #ffb74d;
             --text: #e0e0e0;
             --text-muted: #a0a0a0;
             --border: #333333;
@@ -25,13 +26,13 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             border-bottom: 2px solid var(--primary);
             padding-bottom: 15px;
         }
@@ -47,12 +48,13 @@
             margin: 0;
         }
 
+        /* Калькулятор */
         .calculator-global {
             background-color: var(--surface);
             padding: 20px;
             border-radius: 10px;
             border: 1px solid var(--border);
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 15px;
@@ -74,6 +76,32 @@
             width: 120px;
         }
 
+        /* Кнопки категорий */
+        .categories-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .cat-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+
+        .cat-btn:hover, .cat-btn.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        /* Карточки */
         .recipes-grid {
             display: grid;
             gap: 20px;
@@ -84,7 +112,6 @@
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 20px;
-            transition: transform 0.2s;
         }
 
         .recipe-card:hover {
@@ -94,10 +121,11 @@
         .recipe-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             border-bottom: 1px solid var(--border);
             padding-bottom: 10px;
             margin-bottom: 15px;
+            gap: 10px;
         }
 
         .recipe-title {
@@ -106,45 +134,38 @@
             font-size: 1.4rem;
         }
 
+        .meta-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
         .tag {
             background: #333;
             color: var(--text-muted);
-            padding: 4px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
             font-size: 0.85rem;
+            font-weight: 500;
         }
 
-        .tag.kopchenie {
-            background: #4a2c00;
-            color: #ffb74d;
-        }
-
-        .tag.vyalenie {
-            background: #1b3a1e;
-            color: #81c784;
-        }
+        .tag.kopchenie { background: #4a2c00; color: #ffb74d; }
+        .tag.vyalenie { background: #1b3a1e; color: #81c784; }
+        .tag.fast { background: #3b1111; color: #ff8a80; }
 
         .section-title {
             font-weight: bold;
             margin-top: 15px;
             margin-bottom: 8px;
             color: #fff;
-            text-decoration: underline;
+            border-left: 3px solid var(--primary);
+            padding-left: 8px;
         }
 
-        ul {
-            margin: 0;
-            padding-left: 20px;
-        }
+        ul { margin: 0; padding-left: 20px; }
+        li { margin-bottom: 5px; }
 
-        li {
-            margin-bottom: 5px;
-        }
-
-        .val {
-            color: var(--primary);
-            font-weight: bold;
-        }
+        .val { color: var(--accent); font-weight: bold; }
 
         .tech-steps {
             background-color: #1a1a1a;
@@ -153,12 +174,13 @@
             font-size: 0.95rem;
             line-height: 1.5;
             margin-top: 10px;
+            border: 1px dashed #333;
         }
 
         @media (max-width: 600px) {
             body { padding: 10px; }
             .calculator-global { flex-direction: column; align-items: flex-start; }
-            .recipe-header { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .recipe-header { flex-direction: column; }
         }
     </style>
 </head>
@@ -166,127 +188,185 @@
 
 <div class="container">
     <header>
-        <h1>База Рецептов Колбас</h1>
-        <p class="subtitle">Интерактивный справочник сыровяленых и сырокопченых колбас</p>
+        <h1>Справочник и Калькулятор Колбас</h1>
+        <p class="subtitle">Технологические карты сыровяленых и сырокопченых изделий</p>
     </header>
 
     <div class="calculator-global">
-        <label for="weightInput">Вес парти (кг):</label>
-        <input type="number" id="weightInput" value="1" min="0.1" step="0.1" oninput="recalculate()">
-        <span>Укажите нужный вес фарша — специи и мясной состав пересчитаются автоматически.</span>
+        <label for="weightInput">Вес партии (кг):</label>
+        <input type="number" id="weightInput" value="1" min="0.1" step="0.1" oninput="render()">
+        <span>Введи вес мяса — пропорции специй и сырья рассчитаются автоматически.</span>
+    </div>
+
+    <!-- Переключатель категорий -->
+    <div class="categories-nav">
+        <button class="cat-btn active" onclick="filterCategory('all', this)">Все рецепты</button>
+        <button class="cat-btn" onclick="filterCategory('fast_snacks', this)">⚡ Быстрые снеки и кнуты</button>
+        <button class="cat-btn" onclick="filterCategory('gost', this)">🏛️ ГОСТ и Классика</button>
+        <button class="cat-btn" onclick="filterCategory('spicy', this)">🌶️ Пряные и Острые</button>
+        <button class="cat-btn" onclick="filterCategory('euro', this)">🍷 Изысканный Сыровял</button>
     </div>
 
     <div class="recipes-grid" id="recipesContainer"></div>
 </div>
 
 <script>
+let currentCategory = 'all';
+
 const recipes = [
+    // --- 1. БЫСТРЫЕ СНЕКИ И КНУТЫ ---
     {
-        id: "milano",
-        name: "1. Салями «Милано»",
-        type: "vyalenie",
-        typeText: "Сыровяленая (Без копчения)",
+        id: "kabanos",
+        category: "fast_snacks",
+        name: "Кабаноси (Польские хрустящие палочки)",
+        type: "kopchenie",
+        typeText: "Сырокопченая",
+        calibre: "18-22 мм",
+        time: "5-8 дней сушки",
         meat: [
             { name: "Свинина полужирная (лопатка/окорок)", base: 700, unit: "г" },
-            { name: "Шпик хребтовый твердый", base: 300, unit: "г" }
+            { name: "Грудинка свиная жирная", base: 300, unit: "г" }
         ],
         spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
-            { name: "Сахар или декстроза", base: 4, unit: "г" },
-            { name: "Перец белый молотый", base: 2, unit: "г" },
-            { name: "Чеснок сушеный", base: 1.5, unit: "г" },
-            { name: "Вино сухое белое (холодное)", base: 20, unit: "мл" }
-        ],
-        tech: "Мясо и шпик подморозить (-1..-2°C) и измельчить через решетку 3-4 мм. Вымешать с солью, специями и вином до липкости. Набить в оболочку калибра 50-60 мм. Вялить при +12..+14°C и влажности 75-78% до усушки 30-35%."
-    },
-    {
-        id: "chorizo",
-        name: "2. Чоризо",
-        type: "vyalenie",
-        typeText: "Сыровяленая (Без копчения)",
-        meat: [
-            { name: "Свинина нежирная", base: 600, unit: "г" },
-            { name: "Свиная грудинка / шпик", base: 400, unit: "г" }
-        ],
-        spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
-            { name: "Паприка копченая (или сладкая)", base: 18, unit: "г" },
-            { name: "Перец красный острый (чили)", base: 2.5, unit: "г" },
-            { name: "Чеснок свежий (давленный) или сухой", base: 3, unit: "г" },
-            { name: "Орегано сушеный", base: 1, unit: "г" },
-            { name: "Сахар / декстроза", base: 3, unit: "г" }
-        ],
-        tech: "Измельчить мясо и жир через крупную решетку (6-8 мм) для рубленной структуры. Тщательно вымешать со специями. Набить в свиную череву 38-42 мм или коллаген. Вялить до усушки 30-35%."
-    },
-    {
-        id: "felino",
-        name: "3. Салями «Фелино»",
-        type: "vyalenie",
-        typeText: "Сыровяленая (Без копчения)",
-        meat: [
-            { name: "Свинина нежирная (окорок)", base: 750, unit: "г" },
-            { name: "Шпик твердый хребтовый", base: 250, unit: "г" }
-        ],
-        spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
-            { name: "Перец черный горошком (цельный)", base: 3, unit: "г" },
-            { name: "Чеснок (настоять в 20мл вина, влить вино)", base: 1.5, unit: "г" },
-            { name: "Сахар / декстроза", base: 3, unit: "г" }
-        ],
-        tech: "Мясо пропустить через решетку 6 мм, шпик нарезать кубиком 4-5 мм. Влить чесночное вино, всыпать цельный перец, соль и сахар. Вымешать, забить в оболочку 45-50 мм. Вялить до усушки 30-35%."
-    },
-    {
-        id: "sudzhuk",
-        name: "4. Домашний Суджук",
-        type: "vyalenie",
-        typeText: "Сыровяленая (Без копчения)",
-        meat: [
-            { name: "Говядина нежирная (или баранина)", base: 800, unit: "г" },
-            { name: "Жир говяжий или свиной", base: 200, unit: "г" }
-        ],
-        spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
-            { name: "Чабер (кондари) или базилик", base: 3, unit: "г" },
-            { name: "Кориандр молотый", base: 2, unit: "г" },
-            { name: "Зира (тмин) молотая", base: 2, unit: "г" },
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Сахар / декстроза", base: 4, unit: "г" },
             { name: "Перец черный молотый", base: 2, unit: "г" },
-            { name: "Перец красный острый", base: 1, unit: "г" },
-            { name: "Сахар", base: 3, unit: "г" }
+            { name: "Перец белый молотый", base: 1, unit: "г" },
+            { name: "Тмин (слегка размятый)", base: 1.5, unit: "г" },
+            { name: "Чеснок сушеный", base: 2, unit: "г" }
         ],
-        tech: "Пропустить через решетку 4-5 мм, вымешать, набить в говяжьи черевы. За время сушки 3-4 раза прокатывать скалкой для придания плоской формы."
+        tech: "Мясо измельчить через решетку 3-4 мм. Вымешать с соль и специями. Набить в тонкую баранью череву (20-22 мм) или тонкий коллаген. Осадка: 24ч при +2..+4°C. Холодное копчение: 8-12 часов при +18..+20°C. Сушка: 5-8 дней до потери 30% веса."
+    },
+    {
+        id: "pepperoni_sticks",
+        category: "fast_snacks",
+        name: "Пепперони-стики (Острые мини-палочки)",
+        type: "kopchenie",
+        typeText: "Сырокопченая",
+        calibre: "20-22 мм",
+        time: "6-8 дней сушки",
+        meat: [
+            { name: "Свинина полужирная", base: 600, unit: "г" },
+            { name: "Говядина нежирная", base: 200, unit: "г" },
+            { name: "Шпик или жирная свинина", base: 200, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Декстроза", base: 5, unit: "г" },
+            { name: "Паприка сладкая молотая", base: 12, unit: "г" },
+            { name: "Перец кайенский / чили", base: 3, unit: "г" },
+            { name: "Чеснок сушеный", base: 2.5, unit: "г" },
+            { name: "Кориандр молотый", base: 1, unit: "г" }
+        ],
+        tech: "Фарш измельчить через решетку 3 мм. Набивка в тонкую баранью череву (20-22 мм). Сутки осадка, холодное копчение 10-12 часов и сушка 6-8 дней."
+    },
+    {
+        id: "knuty_pivnye",
+        category: "fast_snacks",
+        name: "Охотничьи кнуты (Пивные снеки)",
+        type: "kopchenie",
+        typeText: "Сырокопченая",
+        calibre: "18-22 мм",
+        time: "5-7 дней сушки",
+        meat: [
+            { name: "Свинина нежирная", base: 500, unit: "г" },
+            { name: "Говядина постная", base: 300, unit: "г" },
+            { name: "Грудинка свиная жирная", base: 200, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Сахар", base: 3, unit: "г" },
+            { name: "Перец черный крупного помола", base: 2.5, unit: "г" },
+            { name: "Перец душистый молотый", base: 1, unit: "г" },
+            { name: "Чеснок сушеный", base: 2, unit: "г" },
+            { name: "Горчичный порошок", base: 1.5, unit: "г" }
+        ],
+        tech: "Решетка 4 мм. Набивка в коллаген 18-22 мм. Осадка 12-24ч, холодное копчение 8-12ч, сушка в дегидраторе или камере 5-7 дней."
+    },
+
+    // --- 2. ГОСТ И КЛАССИКА ---
+    {
+        id: "moskovskaya",
+        category: "gost",
+        name: "Московская сырокопченая (ГОСТ)",
+        type: "kopchenie",
+        typeText: "Сырокопченая",
+        calibre: "45-50 мм",
+        time: "25-30 дней",
+        meat: [
+            { name: "Говядина высшего сорта (нежирная)", base: 750, unit: "г" },
+            { name: "Шпик боковой твердый (кубик 4-6 мм)", base: 250, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Сахар / декстроза", base: 3, unit: "г" },
+            { name: "Перец черный молотый", base: 2, unit: "г" },
+            { name: "Мускатный орех молотый", base: 0.5, unit: "г" }
+        ],
+        tech: "Говядину измельчить через 2-3 мм, тщательно вымешать. В конце добавить замороженный кубик шпика. Осадка при +2..+4°C — 5-7 суток. Холодное копчение (+18..+20°C) — 2-3 суток. Вяление при +12..+14°C до усушки 35%."
     },
     {
         id: "egerskie",
-        name: "5. Егерские колбаски",
+        category: "gost",
+        name: "Егерские колбаски",
         type: "kopchenie",
         typeText: "Сырокопченая",
+        calibre: "32-36 мм",
+        time: "12-15 дней",
         meat: [
             { name: "Свинина полужирная", base: 500, unit: "г" },
             { name: "Говядина нежирная", base: 300, unit: "г" },
             { name: "Грудинка свиная жирная", base: 200, unit: "г" }
         ],
         spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
             { name: "Перец черный молотый", base: 2, unit: "г" },
             { name: "Тмин молотый", base: 1.5, unit: "г" },
             { name: "Чеснок сушеный", base: 2, unit: "г" },
             { name: "Кориандр молотый", base: 1, unit: "г" },
             { name: "Сахар / декстроза", base: 4, unit: "г" }
         ],
-        tech: "Решетка 4-5 мм. Набивка в свиную или баранью череву (32-36 мм). Осадка 24-48 часов при +2..+4°C. Холодное копчение (+18..+20°C) 18-24 часа. Досушивание до усушки 30-35%."
+        tech: "Решетка 4-5 мм. Набивка в свиную череву (32-36 мм). Осадка 24-48 часов при +2..+4°C. Холодное копчение (+18..+20°C) 18-24 часа. Досушивание до усушки 30-35%."
+    },
+
+    // --- 3. ПРЯНЫЕ И ОСТРЫЕ ---
+    {
+        id: "chorizo",
+        category: "spicy",
+        name: "Чоризо (Испанская острая)",
+        type: "vyalenie",
+        typeText: "Сыровяленая",
+        calibre: "38-42 мм",
+        time: "18-25 дней",
+        meat: [
+            { name: "Свинина нежирная", base: 600, unit: "г" },
+            { name: "Свиная грудинка / шпик", base: 400, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Паприка копченая (или сладкая)", base: 18, unit: "г" },
+            { name: "Перец красный острый (чили)", base: 2.5, unit: "г" },
+            { name: "Чеснок свежий (давленный) или сухой", base: 3, unit: "г" },
+            { name: "Орегано сушеный", base: 1, unit: "г" },
+            { name: "Сахар / декстроза", base: 3, unit: "г" }
+        ],
+        tech: "Крупная решетка (6-8 мм) для рубленой структуры. Вымешать с солью и специями. Набить в свиную череву 38-42 мм или коллаген. Вялить при +12..+14°C до усушки 30-35%."
     },
     {
         id: "pepperoni",
-        name: "6. Пепперони",
+        category: "spicy",
+        name: "Пепперони классическая",
         type: "kopchenie",
         typeText: "Сырокопченая",
+        calibre: "38-42 мм",
+        time: "18-22 дня",
         meat: [
             { name: "Свинина полужирная", base: 500, unit: "г" },
             { name: "Говядина нежирная", base: 300, unit: "г" },
             { name: "Шпик / грудинка", base: 200, unit: "г" }
         ],
         spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
             { name: "Паприка молотая", base: 10, unit: "г" },
             { name: "Перец чили / кайенский", base: 3, unit: "г" },
             { name: "Анис или фенхель молотый", base: 1, unit: "г" },
@@ -296,31 +376,90 @@ const recipes = [
         tech: "Решетка 3-4 мм. Набивка в калибр 38-42 мм. Осадка 24 часа. Холодное копчение 24 часа. Вяление до усушки 35%."
     },
     {
-        id: "knuty",
-        name: "7. Охотничьи колбаски (Кнуты)",
-        type: "kopchenie",
-        typeText: "Сырокопченая",
+        id: "sudzhuk",
+        category: "spicy",
+        name: "Домашний Суджук (Плоская)",
+        type: "vyalenie",
+        typeText: "Сыровяленая",
+        calibre: "38-40 мм",
+        time: "15-20 дней",
         meat: [
-            { name: "Свинина нежирная", base: 600, unit: "г" },
-            { name: "Грудинка свиная жирная", base: 400, unit: "г" }
+            { name: "Говядина нежирная (или баранина)", base: 800, unit: "г" },
+            { name: "Жир говяжий или свиной", base: 200, unit: "г" }
         ],
         spices: [
-            { name: "Соль нитритная (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Чабер (кондари) или базилик", base: 3, unit: "г" },
+            { name: "Кориандр молотый", base: 2, unit: "г" },
+            { name: "Зира (тмин) молотая", base: 2, unit: "г" },
             { name: "Перец черный молотый", base: 2, unit: "г" },
-            { name: "Перец душистый молотый", base: 1, unit: "г" },
-            { name: "Чеснок сушеный", base: 2, unit: "г" },
-            { name: "Сахар / декстроза", base: 4, unit: "г" }
+            { name: "Перец красный острый", base: 1, unit: "г" },
+            { name: "Сахар", base: 3, unit: "г" }
         ],
-        tech: "Решетка 4 мм. Набивка в баранью череву (20-24 мм) или тонкий коллаген. Осадка 12-24 часа, холодное копчение 8-12 часов, сушка 5-7 дней."
+        tech: "Решетка 4-5 мм, набивка в говяжьи черевы. За время сушки 3-4 раза прокатывать скалкой для придания плоской формы."
+    },
+
+    // --- 4. ИЗЫСКАННЫЙ СЫРОВЯЛ ---
+    {
+        id: "milano",
+        category: "euro",
+        name: "Салями «Милано»",
+        type: "vyalenie",
+        typeText: "Сыровяленая",
+        calibre: "50-60 мм",
+        time: "30-35 дней",
+        meat: [
+            { name: "Свинина полужирная (лопатка/окорок)", base: 700, unit: "г" },
+            { name: "Шпик хребтовый твердый", base: 300, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Сахар или декстроза", base: 4, unit: "г" },
+            { name: "Перец белый молотый", base: 2, unit: "г" },
+            { name: "Чеснок сушеный", base: 1.5, unit: "г" },
+            { name: "Вино сухое белое (холодное)", base: 20, unit: "мл" }
+        ],
+        tech: "Решетка 3-4 мм. Вымешать с солью, специями и вином до липкости. Набить в оболочку калибра 50-60 мм. Вялить при +12..+14°C и влажности 75-78%."
+    },
+    {
+        id: "felino",
+        category: "euro",
+        name: "Салями «Фелино» (Парма)",
+        type: "vyalenie",
+        typeText: "Сыровяленая",
+        calibre: "45-50 мм",
+        time: "25-30 дней",
+        meat: [
+            { name: "Свинина нежирная (окорок)", base: 750, unit: "г" },
+            { name: "Шпик твердый хребтовый", base: 250, unit: "г" }
+        ],
+        spices: [
+            { name: "Нитритная соль (0.5-0.6%)", base: 28, unit: "г" },
+            { name: "Перец черный горошком (цельный)", base: 3, unit: "г" },
+            { name: "Чеснок (настоять в 20мл вина, влить вино)", base: 1.5, unit: "г" },
+            { name: "Сахар / декстроза", base: 3, unit: "г" }
+        ],
+        tech: "Мясо через решетку 6 мм, шпик кубиком 4-5 мм. Влить чесночное вино, всыпать цельный перец. Набить в оболочку 45-50 мм. Вялить до усушки 30-35%."
     }
 ];
 
-function recalculate() {
+function filterCategory(cat, btn) {
+    currentCategory = cat;
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    render();
+}
+
+function render() {
     const weight = parseFloat(document.getElementById('weightInput').value) || 1;
     const container = document.getElementById('recipesContainer');
     container.innerHTML = '';
 
-    recipes.forEach(r => {
+    const filtered = currentCategory === 'all' 
+        ? recipes 
+        : recipes.filter(r => r.category === currentCategory);
+
+    filtered.forEach(r => {
         let card = document.createElement('div');
         card.className = 'recipe-card';
 
@@ -337,7 +476,12 @@ function recalculate() {
         card.innerHTML = `
             <div class="recipe-header">
                 <h2 class="recipe-title">${r.name}</h2>
-                <span class="tag ${r.type}">${r.typeText}</span>
+                <div class="meta-badges">
+                    <span class="tag ${r.type}">${r.typeText}</span>
+                    ${r.category === 'fast_snacks' ? '<span class="tag fast">⚡ Быстрый срок</span>' : ''}
+                    <span class="tag">📏 ${r.calibre}</span>
+                    <span class="tag">⏳ ${r.time}</span>
+                </div>
             </div>
             <div class="section-title">Состав сырья:</div>
             <ul>${meatHtml}</ul>
@@ -351,8 +495,8 @@ function recalculate() {
     });
 }
 
-// Первоначальный вызов
-recalculate();
+// Первый запуск
+render();
 </script>
 
 </body>
